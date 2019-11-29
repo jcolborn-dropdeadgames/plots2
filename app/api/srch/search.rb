@@ -3,6 +3,8 @@ require 'grape-entity'
 
 module Srch
   class Search < Grape::API
+    include Skylight::Helpers
+
     # we are using a group of reusable parameters using a shared params helper
     # see /app/api/srch/shared_params.rb
     helpers SharedParams
@@ -95,7 +97,7 @@ module Srch
       get :profiles do
         search_request = SearchRequest.from_request(params)
         # TODO: evaluate if disabling this caching action actually speeds things up?
-        # cache(key: "api:profiles:#{params[:query]}:#{params[:limit]}:#{params[:sort_by]}:#{params[:order_direction]}:#{params[:field]}", expires_in: 2.day) do
+        cache(key: "api:profiles:#{params[:query]}:#{params[:limit]}:#{params[:sort_by]}:#{params[:order_direction]}:#{params[:field]}", expires_in: 2.day) do
           results = Search.execute(:profiles, params)
 
           if results.present?
@@ -103,14 +105,17 @@ module Srch
               DocResult.new(
                 doc_type: 'USERS',
                 doc_url: '/profile/' + model.name,
-                doc_title: model.username
+                doc_title: model.username,
+                latitude: model.lat,
+                longitude: model.lon,
+                blurred: model.blurred?
               )
             end
             DocList.new(docs, search_request)
           else
             DocList.new('', search_request)
           end
-        # end
+        end
       end
 
       # Request URL should be /api/srch/notes?query=QRY
@@ -155,12 +160,12 @@ module Srch
         results_list = []
 
         if results.present?
-          results_list << results[:tags].map do |model|
+          results_list << results[:tags].map do |tagname|
             DocResult.new(
-              doc_id: model.nid,
+              doc_id: tagname,
               doc_type: 'TAGS',
-              doc_url: model.path,
-              doc_title: model.title
+              doc_url: "/tag/#{tagname}",
+              doc_title: tagname
             )
           end
           results_list << results[:notes].map do |model|
@@ -176,8 +181,8 @@ module Srch
           DocList.new('', search_request)
         end
       end
-        
-      # Request URL should be /api/srch/content?query=QRY
+
+      # Request URL should be /api/srch/nodes?query=QRY
       desc 'Perform a search of nodes', hidden: false,
                                                  is_array: false,
                                                  nickname: 'search_content'
@@ -271,27 +276,28 @@ module Srch
         use :common
       end
       get :tags do
-        search_request = SearchRequest.from_request(params)
-        results = Search.execute(:tags, params)
+        Skylight.instrument title: "Tags search" do
+          search_request = SearchRequest.from_request(params)
+          results = Search.execute(:tags, params)
 
-        if results.present?
-          docs = results.map do |model|
-            DocResult.new(
-              doc_id: model.nid,
-              doc_type: 'TAGS',
-              doc_url: model.path,
-              doc_title: model.title
-            )
+          if results.present?
+            docs = results.map do |model|
+              DocResult.new(
+                doc_id: model.nid,
+                doc_type: 'TAGS',
+                doc_url: model.path,
+                doc_title: model.title
+              )
+            end
+
+            DocList.new(docs, search_request)
+          else
+            DocList.new('', search_request)
           end
-
-          DocList.new(docs, search_request)
-        else
-          DocList.new('', search_request)
         end
       end
 
       # Request URL should be /api/srch/taglocations?nwlat=200.0&selat=0.0&nwlng=0.0&selng=200.0[&tag=awesome]
-      # Note: Query(QRY as above) must have latitude and longitude as query=lat,lon
       desc 'Perform a search of documents having nearby latitude and longitude tag values', hidden: false,
                                                                                             is_array: false,
                                                                                             nickname: 'search_tag_locations'
@@ -310,6 +316,8 @@ module Srch
               doc_type: 'PLACES',
               doc_url: model.path(:items),
               doc_title: model.title,
+              doc_author: model.user.username,
+              doc_image_url: !model.images.empty? ? model.images.first.path : 0,
               score: model.answers.length,
               latitude: model.lat,
               longitude: model.lon,
@@ -323,7 +331,6 @@ module Srch
       end
 
       # Request URL should be /api/srch/nearbyPeople?nwlat=200.0&selat=0.0&nwlng=0.0&selng=200.0[&tag=awesome&sort_by=recent]
-      # Note: Query(QRY as above) must have latitude and longitude as query=lat,lon
       desc 'Perform a search to show people nearby a given location',  hidden: false,
                                                                        is_array: false,
                                                                        nickname: 'search_nearby_people'

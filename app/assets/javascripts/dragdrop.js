@@ -9,6 +9,14 @@ jQuery(document).ready(function() {
  * #side-dropzone, is for the main image of research notes, in /app/views/editor/post.html.erb
 */
 
+    function progressAll(elem, data) {
+        var progress = parseInt(data.loaded / data.total * 100, 10);
+        $(elem).css(
+            'width',
+            progress + '%'
+        );
+    }
+
     $('.dropzone').bind('dragover',function(e) {
       e.preventDefault();
       $('.dropzone').addClass('hover');
@@ -70,7 +78,7 @@ jQuery(document).ready(function() {
                         $E.wrap('[![', '](' + file_url + ')](' + orig_image_url + ')', {'newline': true, 'fallback': data.result['filename']}) // on its own line; see /app/assets/js/editor.js
                         break
                     case 'csv':
-                        $E.wrap('[graph:' + file_url + ']', {'newline': true, 'fallback': data.result['filename']})
+                        $E.wrap('[graph:' + file_url + ']', '', {'newline': true})
                         break
                     default:
                         $E.wrap('<a href="'+data.result.url.split('?')[0]+'"><i class="fa fa-file"></i> ','</a>', {'newline': true, 'fallback': data.result['filename'].replace(/[()]/g , "-")}) // on its own line; see /app/assets/js/editor.js
@@ -91,11 +99,7 @@ jQuery(document).ready(function() {
 
             },
             progressall: function (e, data) {
-                var progress = parseInt(data.loaded / data.total * 100, 10);
-                $('#create_progress-bar').css(
-                    'width',
-                    progress + '%'
-                );
+                return progressAll('#create_progress-bar', data);
             }
         });
     });
@@ -194,32 +198,28 @@ jQuery(document).ready(function() {
         'nid':$D.nid
       },
       start: function(e) {
-        ($D.selected).find('.side-dropzone').eq(0).css('border-color','#ccc');
-        ($D.selected).find('.side-dropzone').eq(0).css('background','none');
-        ($D.selected).find('#side-progress').eq(0).show();
-        ($D.selected).find('#side-dropzone').eq(0).removeClass('hover');
-        ($D.selected).find('.side-uploading').eq(0).show();
+          $('.side-dropzone').css('border-color','#ccc');
+          $('.side-dropzone').css('background','none');
+          $('#side-progress').show();
+          $('#side-dropzone').removeClass('hover');
+          $('.side-uploading').show();
       },
       done: function (e, data) {
-          ($D.selected).find('#side-progress').eq(0).hide();
-          ($D.selected).find('#side-dropzone').eq(0).show();
-          ($D.selected).find('.side-uploading').eq(0).hide();
-          ($D.selected).find('#leadImage')[0].src = data.result.url;
-          ($D.selected).find('#leadImage').eq(0).show();
+          $('#side-progress').hide();
+          $('#side-dropzone').show();
+          $('.side-uploading').hide();
+          $('#leadImage')[0].src = data.result.url;
+          $('#leadImage').show();
         // here append the image id to the note as the lead image
-          ($D.selected).find('#main_image').eq(0).val(data.result.id);
-          ($D.selected).find("#image_revision").append('<option selected="selected" id="'+data.result.id+'" value="'+data.result.url+'">Temp Image '+data.result.id+'</option>');
+          $('#main_image').val(data.result.id);
+          $("#image_revision").append('<option selected="selected" id="'+data.result.id+'" value="'+data.result.url+'">Temp Image '+data.result.id+'</option>');
       },
 
       // see callbacks at https://github.com/blueimp/jQuery-File-Upload/wiki/Options
       fileuploadfail: function(e,data) {
       },
       progressall: function (e, data) {
-        var progress = parseInt(data.loaded / data.total * 100, 10);
-        ($D.selected).find('#side-progress .progress-bar').eq(0).css(
-          'width',
-          progress + '%'
-        );
+          return progressAll('#side-progress .progress-bar', data);
       }
     });
 });

@@ -253,7 +253,7 @@ en:
       notes_per_week: "%{note_count} notes per week over this period."
       edits_per_week: "%{count} edits per week over this period."
       notes_wikis_comments: |
-          <b>%{notes_count} notes</b> and <b>%{wikis_count} wiki edits and</b>
+          <b>%{notes_count} notes</b>, <b>%{wikis_count} wiki edits</b>
           and <b>%{comments_count} comments </b>  posted in this period.
       members_and_contributors: |
           <b>%{member_count}  member registrations</b>
@@ -371,8 +371,17 @@ en:
       subscriptions: "Your subscriptions"
       sort_by: "Sort By"
       more_posts: "more posts"
-      subscribe: "Subscribe"
-      unsubscribe: "Unsubscribe"
+      follow: "Follow"
+      unfollow: "Unfollow"
+      notes:
+        one: "1 note"
+        other: "%{count} notes"
+      questions:
+        one: "1 question"
+        other: "%{count} questions"
+      comments:
+        one: "1 comment"
+        other: "%{count} comments"
     show:
       notes_tagged: "Notes tagged with <i style=\"color:#aaa;\">%{tag}</i>"
       following: "Following"
@@ -390,6 +399,7 @@ en:
       maps: "Maps"
       no_results_found: "No results found; try searching for '<b>%{tag}</b>'"
       try_advanced_search: "Or try an <a href='%{url1}'>advanced search</a>"
+      people: "People"
       no_map_results_found: "Sorry, no map is tagged with <i>%{tag}</i>"
       contributors: "Contributors"
     contributors-index:
@@ -420,6 +430,8 @@ en:
         use the * asterisk in their URLs, and will not show contributor listings."
       contributor: "Contributor"
       notes: "Notes"
+      people_who've_posted: "People who've posted"
+      people_who_are_following: "People who are following"
   wiki:
     index:
       wiki_pages_tagged_with: "Wiki pages tagged with <i style='color:#aaa;'>%{tag}</i>"
@@ -549,7 +561,7 @@ en:
         board: "Non-profit board"
         fund: "How we're funded"
         press_and_media: "Press and Media"
-        contact: "Contact the staff"
+        contact: "Contact"
       get_involved:
         get_involved_title: "Get Involved"
         getting_started: "Getting started"
@@ -607,7 +619,7 @@ en:
       username: "Username"
       password: "Password"
       remember_me: "Remember me"
-      reset_by_clicking_here: "Forgotten or lost your password? Reset it by <a href='%{url1}'>clicking here</a>"
+      reset_by_clicking_here: "Forgot your password? Reset it <a href='%{url1}'>here</a>"
   home:
     dashboard:
       welcome: "Welcome!"
@@ -644,7 +656,7 @@ en:
       click_unfollow: "Click to unfollow"
       following: "Following"
       research_notes: "all research notes"
-      subscribe_to: "Subscribe to"
+      subscribe_to: "Follow"
       all: "all"
       notes: "notes"
       receive_mails: "Receive emails for all research notes."
@@ -654,7 +666,7 @@ en:
       options: "Options"
       share_subscription_link: "Share this subscription link"
       share: "Share"
-      unsubscribe: "Unsubscribe"
+      unsubscribe: "Unfollow"
     _comments:
       commented: "commented"
       read_more: "Read more"
@@ -729,7 +741,7 @@ en:
       browse_wiki: "Browse the Public Lab Wiki"
     _list:
       mailing_list: "Join the <a href='%{url1}'<b>%{mailing_list}</b> mailing list</a>"
-      subscribe: "Subscribe"
+      subscribe: "Follow"
       recent_discussion_topics: "Recent discussion topics"
       all_topics: "All topics"
     _user:
@@ -906,6 +918,13 @@ en:
       please_read_instructions: "Please read the instructions in the last box carefully."
       not_a_real_person: "-- It doesn't seem like you are a real person! If you disagree or are having trouble, please see https://publiclab.org/registration-test."
   language: English
+  activerecord:
+    errors:
+      messages:
+        record_invalid: 'Validation failed: %{errors}'
+        restrict_dependent_destroy:
+          has_one: Cannot delete record because a dependent %{record} exists
+          has_many: Cannot delete record because dependent %{record} exist
   date:
     abbr_day_names:
     - Sun
@@ -937,28 +956,6 @@ en:
     - Thursday
     - Friday
     - Saturday
-    formats:
-      default: "%Y-%m-%d"
-      long: "%B %d, %Y"
-      short: "%b %d"
-    month_names:
-    -
-    - January
-    - February
-    - March
-    - April
-    - May
-    - June
-    - July
-    - August
-    - September
-    - October
-    - November
-    - December
-    order:
-    - :year
-    - :month
-    - :day
   datetime:
     time_ago_in_words:
       about_x_hours:
@@ -995,10 +992,142 @@ en:
       x_seconds:
         one: "1 second"
         other: "%{count} seconds ago"
+      x_years:
+        one: "1 year"
+        other: "%{count} years ago"
+    formats:
+      default: "%Y-%m-%d"
+      long: "%B %d, %Y"
+      short: "%b %d"
+    month_names:
+    -
+    - January
+    - February
+    - March
+    - April
+    - May
+    - June
+    - July
+    - August
+    - September
+    - October
+    - November
+    - December
+    order:
+    - :year
+    - :month
+    - :day
     prompts:
-      day: "Day"
-      hour: "Hour"
-      minute: "Minute"
-      month: "Month"
       second: "Seconds"
+      minute: "Minute"
+      hour: "Hour"
+      day: "Day"
+      month: "Month"
       year: "Year"
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      accepted: must be accepted
+      blank: can't be blank
+      confirmation: doesn't match %{attribute}
+      empty: can't be empty
+      equal_to: must be equal to %{count}
+      even: must be even
+      exclusion: is reserved
+      greater_than: must be greater than %{count}
+      greater_than_or_equal_to: must be greater than or equal to %{count}
+      inclusion: is not included in the list
+      invalid: is invalid
+      less_than: must be less than %{count}
+      less_than_or_equal_to: must be less than or equal to %{count}
+      model_invalid: 'Validation failed: %{errors}'
+      not_a_number: is not a number
+      not_an_integer: must be an integer
+      odd: must be odd
+      other_than: must be other than %{count}
+      present: must be blank
+      required: must exist
+      taken: has already been taken
+      too_long:
+        one: is too long (maximum is 1 character)
+        other: is too long (maximum is %{count} characters)
+      too_short:
+        one: is too short (minimum is 1 character)
+        other: is too short (minimum is %{count} characters)
+      wrong_length:
+        one: is the wrong length (should be 1 character)
+        other: is the wrong length (should be %{count} characters)
+    template:
+      body: 'There were problems with the following fields:'
+      header:
+        one: 1 error prohibited this %{model} from being saved
+        other: "%{count} errors prohibited this %{model} from being saved"
+  helpers:
+    select:
+      prompt: Please select
+    submit:
+      create: Create %{model}
+      submit: Save %{model}
+      update: Update %{model}
+  number:
+    currency:
+      format:
+        delimiter: ","
+        format: "%u%n"
+        precision: 2
+        separator: "."
+        significant: false
+        strip_insignificant_zeros: false
+        unit: "$"
+    format:
+      delimiter: ","
+      precision: 3
+      separator: "."
+      significant: false
+      strip_insignificant_zeros: false
+    human:
+      decimal_units:
+        format: "%n %u"
+        units:
+          billion: Billion
+          million: Million
+          quadrillion: Quadrillion
+          thousand: Thousand
+          trillion: Trillion
+          unit: ''
+      format:
+        delimiter: ''
+        precision: 3
+        significant: true
+        strip_insignificant_zeros: true
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: Byte
+            other: Bytes
+          eb: EB
+          gb: GB
+          kb: KB
+          mb: MB
+          pb: PB
+          tb: TB
+    percentage:
+      format:
+        delimiter: ''
+        format: "%n%"
+    precision:
+      format:
+        delimiter: ''
+  support:
+    array:
+      last_word_connector: ", and "
+      two_words_connector: " and "
+      words_connector: ", "
+  time:
+    am: am
+    formats:
+      default: "%a, %d %b %Y %H:%M:%S %z"
+      long: "%B %d, %Y %H:%M"
+      short: "%d %b %H:%M"
+    pm: pm

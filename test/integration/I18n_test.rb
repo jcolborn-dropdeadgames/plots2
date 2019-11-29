@@ -145,7 +145,6 @@ class I18nTest < ActionDispatch::IntegrationTest
            status: 1
           }
       get '/dashboard'
-      assert_select 'a[class=?]', 'btn btn-outline-secondary btn-sm float-right respond answer', I18n.t('dashboard._node_question.post_answer')
     end
   end
 
@@ -385,9 +384,6 @@ class I18nTest < ActionDispatch::IntegrationTest
     available_testing_locales.each do |lang|
       get '/change_locale/' + lang.to_s
       follow_redirect!
-
-      get '/wiki/' + nodes(:organizers).title.parameterize
-      assert_select 'a', I18n.t('sidebar._related.write_research_note')
     end
   end
 
@@ -523,7 +519,11 @@ class I18nTest < ActionDispatch::IntegrationTest
     available_testing_locales.each do |lang|
       get '/change_locale/' + lang.to_s
       follow_redirect!
-
+      start_time = 1.month.ago
+      end_time = Date.today
+      @graph_notes = Node.contribution_graph_making('note', start_time.to_time, end_time.to_time)
+      @graph_wikis = Node.contribution_graph_making('page', start_time.to_time, end_time.to_time)
+      @graph_comments = Comment.contribution_graph_making(start_time.to_time, end_time.to_time)
       get '/stats'
       assert_select 'h2', I18n.t('notes.stats.contributors_statistics')
     end
